@@ -276,6 +276,12 @@ describe Databasedotcom::Sobject::Sobject do
             TestClass.find_by_DateTime_Field(now).should == "bar"
           end
 
+          it "handles datetime values with custom condition" do
+            now = DateTime.civil(2011, 04, 02, 20, 15, 33)
+            @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass WHERE DateTime_Field > 2011-04-02T20:15:33.000+00:00 LIMIT 1").and_return(["bar"])
+            TestClass.find_by_DateTime_Field(now, :cond => ">").should == "bar"
+          end
+
           it "handles time values" do
             now = Time.utc(2011, "apr", 2, 20, 15, 33)
             offs = now.utc.strftime("%z").insert(-3, ":")

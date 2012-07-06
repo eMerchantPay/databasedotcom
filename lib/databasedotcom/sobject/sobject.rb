@@ -287,9 +287,10 @@ module Databasedotcom
             attrs_and_values_for_write[attr] = value unless hash_args
           end
 
+          condition = (args.last.is_a?(Hash) && args.size > 1) ? args.last[:cond] : "=" 
           limit_clause = method_name.to_s.include?('_all_by_') ? "" : " LIMIT 1"
 
-          results = self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} WHERE #{soql_conditions_for(attrs_and_values_for_find)}#{limit_clause}")
+          results = self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} WHERE #{soql_conditions_for(attrs_and_values_for_find, condition)}#{limit_clause}")
           results = limit_clause == "" ? results : results.first rescue nil
 
           if results.nil?
@@ -354,7 +355,7 @@ module Databasedotcom
         self.type_map[attr_name][key]
       end
 
-      def self.soql_conditions_for(params)
+      def self.soql_conditions_for(params, condition)
         params.inject([]) do |arr, av|
           case av[1]
             when String
@@ -367,7 +368,7 @@ module Databasedotcom
               value_str = av[1].to_s
           end
 
-          arr << "#{av[0]} = #{value_str}"
+          arr << "#{av[0]} #{condition} #{value_str}"
           arr
         end.join(" AND ")
       end
